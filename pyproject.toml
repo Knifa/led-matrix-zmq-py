@@ -1,0 +1,34 @@
+[project]
+name = "led-matrix-zmq"
+version = "0.0.0"
+authors = [{ name = "Dan", email = "knifa@users.noreply.github.com" }]
+description = "Library for interacting with led-matrix-zmq"
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+dependencies = ["pyzmq>=26.2.0"]
+
+[project.urls]
+source = "https://github.com/Knifa/led-matrix-zmq-py"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.13.0",
+    "pytest>=8.3.4",
+    "ruff>=0.8.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["led_matrix_zmq"]
+
+[tool.mypy]
+strict = true
