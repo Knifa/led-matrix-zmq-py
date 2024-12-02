@@ -49,6 +49,9 @@ class LmzControl:
             self._zmq_socket.close()
             self._zmq_socket = None
 
+    def connect(self) -> None:
+        self._reset_socket()
+
     def get_brightness(self) -> int:
         reply = self._send_recv(
             GetBrightnessRequest(NullArgs()),
@@ -133,6 +136,9 @@ class LmzControlAsync:
         if self._zmq_socket:
             self._zmq_socket.close()
             self._zmq_socket = None
+
+    def connect(self) -> None:
+        self._reset_socket()
 
     async def get_brightness(self) -> int:
         reply = await self._send_recv(

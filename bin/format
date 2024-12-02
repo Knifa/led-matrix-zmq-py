@@ -2,4 +2,6 @@
 
 set -euo pipefail
 
-ruff format led_matrix_zmq
+packages="examples led_matrix_zmq tests"
+
+ruff format $packages
