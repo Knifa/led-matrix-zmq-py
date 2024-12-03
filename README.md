@@ -22,6 +22,10 @@ matrix = LmzMatrix(
     frame_endpoint="ipc:///run/lmz-frame.sock",
 )
 
+print(f"Resolution: {matrix.config.width}x{matrix.config.height}")
+print(f"Brightness: {matrix.brightness}")
+print(f"Temperature: {matrix.temperature}")
+
 matrix.brightness = 128
 matrix.temperature = 2500
 
