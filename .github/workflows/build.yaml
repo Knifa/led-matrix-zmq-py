@@ -2,10 +2,6 @@ name: build
 
 on:
   push:
-    branches:
-      - main
-    tags:
-      - v*
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -13,6 +9,7 @@ concurrency:
 
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,3 +23,36 @@ jobs:
         run: uv sync
       - name: Run checks
         run: uv run ./bin/check
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          version: latest
+      - name: Install dependencies
+        run: uv sync
+      - name: Check tag matches version
+        run: |
+          PYPROJECT_VERSION=$(\
+            uv pip show led-matrix-zmq \
+            | grep Version \
+            | awk '{print $2}'\
+          )
+
+          if [ "v$PYPROJECT_VERSION" != "${{ github.ref_name }}" ]; then
+            echo "Tag does not match version in pyproject.toml"
+            exit 1
+          fi
+      - name: Publish
+        env:
+          - UV_PUBLISH_URL=https://test.pypi.org/legacy/
+          - UV_PUBLISH_TOKEN=${{ secrets.PYPI_TOKEN }}
+        run: uv publish
