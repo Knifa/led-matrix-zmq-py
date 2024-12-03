@@ -25,4 +25,4 @@ jobs:
       - name: Install dependencies
         run: uv sync
       - name: Run checks
-        run: ./bin/check
+        run: uv run ./bin/check
