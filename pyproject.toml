@@ -1,6 +1,6 @@
 [project]
 name = "led-matrix-zmq"
-version = "1.0.0rc2"
+version = "1.0.0rc3"
 authors = [{ name = "Dan", email = "knifa@users.noreply.github.com" }]
 description = "Library for interacting with led-matrix-zmq"
 readme = "README.md"
