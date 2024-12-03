@@ -51,6 +51,8 @@ jobs:
             echo "Tag does not match version in pyproject.toml"
             exit 1
           fi
+      - name: Build
+        run: uv build
       - name: Publish
         env:
           UV_PUBLISH_URL: https://test.pypi.org/legacy/
