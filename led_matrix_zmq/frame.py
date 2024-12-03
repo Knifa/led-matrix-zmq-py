@@ -65,7 +65,7 @@ class LmzFrameAsync:
         self._zmq_context.linger = 0
         self._zmq_socket: zmq.asyncio.Socket | None = None
 
-    async def connect(self) -> None:
+    def connect(self) -> None:
         self._reset_socket()
 
     async def send(self, frame: bytes) -> None:
