@@ -1,3 +1,7 @@
 from .control import LmzControl as LmzControl
 from .control import LmzControlAsync as LmzControlAsync
-from .control import LmzMessageError as LmzMessageError
+
+from .exceptions import LmzMessageError as LmzMessageError
+
+from .frame import LmzFrame as LmzFrame
+from .frame import LmzFrameAsync as LmzFrameAsync

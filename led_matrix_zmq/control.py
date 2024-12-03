@@ -4,6 +4,7 @@ from typing import Any, Self, Type
 import zmq
 import zmq.asyncio
 
+from .exceptions import LmzMessageError
 from ._messages import (
     BrightnessArgs,
     ConfigurationArgs,
@@ -25,13 +26,9 @@ from ._messages import (
 logger = logging.getLogger(__name__)
 
 
-class LmzMessageError(Exception):
-    pass
-
-
 class LmzControl:
-    def __init__(self, addr: str) -> None:
-        self._addr = addr
+    def __init__(self, endpoint: str) -> None:
+        self._endpoint = endpoint
 
         self._zmq_context = zmq.Context()
         self._zmq_context.sndtimeo = 1000
@@ -93,7 +90,7 @@ class LmzControl:
             self._zmq_socket.close()
 
         self._zmq_socket = self._zmq_context.socket(zmq.REQ)
-        self._zmq_socket.connect(self._addr)
+        self._zmq_socket.connect(self._endpoint)
 
     def _send_recv(
         self,
@@ -118,8 +115,8 @@ class LmzControl:
 
 
 class LmzControlAsync:
-    def __init__(self, addr: str) -> None:
-        self._addr = addr
+    def __init__(self, endpoint: str) -> None:
+        self._endpoint = endpoint
 
         self._zmq_context = zmq.asyncio.Context()
         self._zmq_context.sndtimeo = 1000
@@ -181,7 +178,7 @@ class LmzControlAsync:
             self._zmq_socket.close()
 
         self._zmq_socket = self._zmq_context.socket(zmq.REQ)
-        self._zmq_socket.connect(self._addr)
+        self._zmq_socket.connect(self._endpoint)
 
     async def _send_recv(
         self,

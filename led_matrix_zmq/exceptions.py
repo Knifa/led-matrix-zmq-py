@@ -1,0 +1,2 @@
+class LmzMessageError(Exception):
+    pass
