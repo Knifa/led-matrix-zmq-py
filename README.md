@@ -10,7 +10,7 @@ The package is called `led-matrix-zmq` and is available on [PyPI](https://pypi.o
 
 ## Usage
 
-Check out the [examples](http://github.com/knifa/led-matrix-zmq-py/examples) directory for some example code!
+Check out the [examples](./examples) directory for some example code!
 
 You'll probably want to use the `LmzMatrix` class which is a higher-level construct around the `LmzControl` and `LmzFrame` classes.
 
