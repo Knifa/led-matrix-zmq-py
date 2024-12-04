@@ -1,5 +1,5 @@
-import math
 import asyncio
+import math
 
 from led_matrix_zmq import LmzFrameAsync
 

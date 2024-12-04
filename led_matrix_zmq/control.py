@@ -1,10 +1,7 @@
 import logging
 from typing import Any, Self, Type
 
-import zmq
-import zmq.asyncio
-
-from .exceptions import LmzMessageError
+from ._consts import DEFAULT_TIMEOUT_MS
 from ._messages import (
     BrightnessArgs,
     ConfigurationArgs,
@@ -22,32 +19,27 @@ from ._messages import (
     SetTemperatureRequest,
     TemperatureArgs,
 )
+from ._zmq import SafeZmq, SafeZmqAsync
 
 logger = logging.getLogger(__name__)
 
 
 class LmzControl:
-    def __init__(self, endpoint: str) -> None:
-        self._endpoint = endpoint
-
-        self._zmq_context = zmq.Context()
-        self._zmq_context.sndtimeo = 1000
-        self._zmq_context.rcvtimeo = 1000
-        self._zmq_context.linger = 0
-        self._zmq_socket: zmq.SyncSocket | None = None
+    def __init__(self, endpoint: str, timeout_ms: int = DEFAULT_TIMEOUT_MS) -> None:
+        self._zmq = SafeZmq(endpoint, timeout_ms)
 
     def __enter__(self) -> Self:
-        assert self._zmq_socket is None
-        self._reset_socket()
+        self.connect()
         return self
 
     def __exit__(self, *args: Any) -> None:
-        if self._zmq_socket:
-            self._zmq_socket.close()
-            self._zmq_socket = None
+        self.close()
 
     def connect(self) -> None:
-        self._reset_socket()
+        self._zmq.connect()
+
+    def close(self) -> None:
+        self._zmq.close()
 
     def get_brightness(self) -> int:
         reply = self._send_recv(
@@ -85,57 +77,31 @@ class LmzControl:
             NullReply,
         )
 
-    def _reset_socket(self) -> None:
-        if self._zmq_socket:
-            self._zmq_socket.close()
-
-        self._zmq_socket = self._zmq_context.socket(zmq.REQ)
-        self._zmq_socket.connect(self._endpoint)
-
     def _send_recv(
         self,
-        req_msg: RequestMessageT,
-        rep_type: Type[ReplyMessageT],
+        rep_msg: RequestMessageT,
+        rep_cls: Type[ReplyMessageT],
     ) -> ReplyMessageT:
-        assert self._zmq_socket
-        req_bytes = req_msg.to_bytes()
-
-        try:
-            self._zmq_socket.send(req_bytes)
-        except zmq.error.Again as e:
-            self._reset_socket()
-            raise LmzMessageError("Timeout") from e
-
-        try:
-            rep_bytes = self._zmq_socket.recv()
-            return rep_type.from_bytes(rep_bytes)
-        except zmq.error.Again as e:
-            self._reset_socket()
-            raise LmzMessageError("Timeout") from e
+        rep_data = self._zmq.send_recv(rep_msg.to_bytes())
+        return rep_cls.from_bytes(rep_data)
 
 
 class LmzControlAsync:
-    def __init__(self, endpoint: str) -> None:
-        self._endpoint = endpoint
-
-        self._zmq_context = zmq.asyncio.Context()
-        self._zmq_context.sndtimeo = 1000
-        self._zmq_context.rcvtimeo = 1000
-        self._zmq_context.linger = 0
-        self._zmq_socket: zmq.asyncio.Socket | None = None
+    def __init__(self, endpoint: str, timeout_ms: int = DEFAULT_TIMEOUT_MS) -> None:
+        self._zmq = SafeZmqAsync(endpoint, timeout_ms)
 
     async def __aenter__(self) -> Self:
-        assert self._zmq_socket is None
-        self._reset_socket()
+        self.connect()
         return self
 
     async def __aexit__(self, *args: Any) -> None:
-        if self._zmq_socket:
-            self._zmq_socket.close()
-            self._zmq_socket = None
+        self.close()
 
     def connect(self) -> None:
-        self._reset_socket()
+        self._zmq.connect()
+
+    def close(self) -> None:
+        self._zmq.close()
 
     async def get_brightness(self) -> int:
         reply = await self._send_recv(
@@ -173,32 +139,10 @@ class LmzControlAsync:
             NullReply,
         )
 
-    def _reset_socket(self) -> None:
-        if self._zmq_socket:
-            self._zmq_socket.close()
-
-        self._zmq_socket = self._zmq_context.socket(zmq.REQ)
-        self._zmq_socket.connect(self._endpoint)
-
     async def _send_recv(
         self,
-        req_msg: RequestMessageT,
-        rep_type: Type[ReplyMessageT],
+        rep_msg: RequestMessageT,
+        rep_cls: Type[ReplyMessageT],
     ) -> ReplyMessageT:
-        assert self._zmq_socket
-        req_bytes = req_msg.to_bytes()
-
-        try:
-            await self._zmq_socket.send(req_bytes)
-        except zmq.error.Again as e:
-            self._reset_socket()
-            raise LmzMessageError("Timeout") from e
-
-        try:
-            rep_bytes = await self._zmq_socket.recv()
-            return rep_type.from_bytes(rep_bytes)
-        except zmq.error.Again as e:
-            self._reset_socket()
-            raise LmzMessageError("Timeout") from e
-        except ValueError as e:
-            raise LmzMessageError("Invalid reply") from e
+        rep_data = await self._zmq.send_recv(rep_msg.to_bytes())
+        return rep_cls.from_bytes(rep_data)

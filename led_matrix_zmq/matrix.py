@@ -1,17 +1,30 @@
+from typing import Self
+
+from ._consts import DEFAULT_TIMEOUT_MS
+from ._messages import ConfigurationArgs
 from .control import LmzControl, LmzControlAsync
 from .frame import LmzFrame, LmzFrameAsync
-from ._messages import ConfigurationArgs
-
-from typing import Self
 
 
 class LmzMatrix:
-    def __init__(self, control_endpoint: str, frame_endpoint: str):
-        self._control = LmzControl(control_endpoint)
-        self._frame = LmzFrame(frame_endpoint)
+    def __init__(
+        self,
+        control_endpoint: str = "ipc:///run/lmz-control.sock",
+        frame_endpoint: str = "ipc:///run/lmz-frame.sock",
+        timeout_ms: int = DEFAULT_TIMEOUT_MS,
+    ):
+        self._control = LmzControl(control_endpoint, timeout_ms)
+        self._frame = LmzFrame(frame_endpoint, timeout_ms)
 
         self._config: ConfigurationArgs | None = None
         self._expected_frame_size: int | None = None
+
+    def __enter__(self) -> Self:
+        self.connect()
+        return self
+
+    def __exit__(self) -> None:
+        self.close()
 
     def connect(self) -> None:
         self._control.connect()
@@ -19,6 +32,10 @@ class LmzMatrix:
 
         self._config = self._control.get_configuration()
         self._expected_frame_size = self._config.width * self._config.height * 4
+
+    def close(self) -> None:
+        self._control.close()
+        self._frame.close()
 
     @property
     def brightness(self) -> int:
@@ -58,21 +75,26 @@ class LmzMatrix:
 
         self._frame.send(frame)
 
-    def __enter__(self) -> Self:
-        self.connect()
-        return self
-
-    def __exit__(self) -> None:
-        pass
-
 
 class LmzMatrixAsync:
-    def __init__(self, control_endpoint: str, frame_endpoint: str):
-        self._control = LmzControlAsync(control_endpoint)
-        self._frame = LmzFrameAsync(frame_endpoint)
+    def __init__(
+        self,
+        control_endpoint: str = "ipc:///run/lmz-control.sock",
+        frame_endpoint: str = "ipc:///run/lmz-frame.sock",
+        timeout_ms: int = DEFAULT_TIMEOUT_MS,
+    ):
+        self._control = LmzControlAsync(control_endpoint, timeout_ms)
+        self._frame = LmzFrameAsync(frame_endpoint, timeout_ms)
 
         self._config: ConfigurationArgs | None = None
         self._expected_frame_size: int | None = None
+
+    async def __aenter__(self) -> Self:
+        await self.connect()
+        return self
+
+    async def __aexit__(self) -> None:
+        self.close()
 
     async def connect(self) -> None:
         self._control.connect()
@@ -80,6 +102,10 @@ class LmzMatrixAsync:
 
         self._config = await self._control.get_configuration()
         self._expected_frame_size = self._config.width * self._config.height * 4
+
+    def close(self) -> None:
+        self._control.close()
+        self._frame.close()
 
     async def get_brightness(self) -> int:
         return await self._control.get_brightness()
@@ -114,10 +140,3 @@ class LmzMatrixAsync:
             )
 
         await self._frame.send(frame)
-
-    async def __aenter__(self) -> Self:
-        await self.connect()
-        return self
-
-    async def __aexit__(self) -> None:
-        pass
