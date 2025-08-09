@@ -35,10 +35,11 @@ class Args(abc.ABC):
 @dataclasses.dataclass
 class BrightnessArgs(Args):
     brightness: int
+    transition: int
 
     @staticmethod
     def pack_format() -> str:
-        return "B"
+        return "BH"
 
 
 @dataclasses.dataclass
@@ -61,10 +62,11 @@ class NullArgs(Args):
 @dataclasses.dataclass
 class TemperatureArgs(Args):
     temperature: int
+    transition: int
 
     @staticmethod
     def pack_format() -> str:
-        return "H"
+        return "HH"
 
 
 ArgsT = TypeVar("ArgsT", bound=Args)

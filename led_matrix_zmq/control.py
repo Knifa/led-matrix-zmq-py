@@ -49,9 +49,9 @@ class LmzControl:
 
         return reply.args.brightness
 
-    def set_brightness(self, brightness: int) -> None:
+    def set_brightness(self, brightness: int, transition: int = 0) -> None:
         self._send_recv(
-            SetBrightnessRequest(BrightnessArgs(brightness)),
+            SetBrightnessRequest(BrightnessArgs(brightness, transition)),
             NullReply,
         )
 
@@ -71,9 +71,9 @@ class LmzControl:
 
         return reply.args.temperature
 
-    def set_temperature(self, temperature: int) -> None:
+    def set_temperature(self, temperature: int, transition: int = 0) -> None:
         self._send_recv(
-            SetTemperatureRequest(TemperatureArgs(temperature)),
+            SetTemperatureRequest(TemperatureArgs(temperature, transition)),
             NullReply,
         )
 
@@ -111,9 +111,9 @@ class LmzControlAsync:
 
         return reply.args.brightness
 
-    async def set_brightness(self, brightness: int) -> None:
+    async def set_brightness(self, brightness: int, transition: int = 0) -> None:
         await self._send_recv(
-            SetBrightnessRequest(BrightnessArgs(brightness)),
+            SetBrightnessRequest(BrightnessArgs(brightness, transition)),
             NullReply,
         )
 
@@ -133,9 +133,9 @@ class LmzControlAsync:
 
         return reply.args.temperature
 
-    async def set_temperature(self, temperature: int) -> None:
+    async def set_temperature(self, temperature: int, transition: int = 0) -> None:
         await self._send_recv(
-            SetTemperatureRequest(TemperatureArgs(temperature)),
+            SetTemperatureRequest(TemperatureArgs(temperature, transition)),
             NullReply,
         )
 
